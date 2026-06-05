@@ -141,3 +141,12 @@ footer {
     color: #64748b;
     font-size: 0.9rem;
 }
+
+/* Correction de la visibilité dans le bandeau bleu */
+.hero h2 {
+    color: #ffffff !important; /* Force le grand titre en blanc pur */
+}
+
+.hero p {
+    color: #e2e8f0 !important; /* Force la description en blanc légèrement grisé très lisible */
+}
