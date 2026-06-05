@@ -1,0 +1,99 @@
+<!-- arguments.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Débat - Arguments et Confrontations</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .debate-section {
+            background-color: white;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .debate-title {
+            font-size: 1.3rem;
+            color: #1e3a8a;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+        .vs-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        .side { padding: 1rem; border-radius: 0.25rem; }
+        .side.pro { background-color: #f0fdf4; border-left: 4px solid var(--pour); }
+        .side.anti { background-color: #fef2f2; border-left: 4px solid var(--contre); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Surveillance Prédictive en Europe</h1>
+        <nav>
+            <a href="index.html">Contexte</a>
+            <a href="acteurs.html">Les Acteurs</a>
+            <a href="arguments.html" class="active">Le Débat</a>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Points de friction majeurs</h2>
+        <p>La controverse ne s'articule pas seulement sur la technique, mais questionne profondément les modèles de société de demain[cite: 1].</p>
+
+        <!-- Friction 1 -->
+        <div class="debate-section">
+            <div class="debate-title">1. Sécurité Publique vs Libertés Individuelles</div>
+            <div class="vs-box">
+                <div class="side pro">
+                    <h5>Arguments POUR :</h5>
+                    <p>L'IA permet d'optimiser la répartition des forces de l'ordre face à des ressources humaines limitées. C'est une évolution naturelle et rationnelle de la sécurité publique[cite: 1].</p>
+                </div>
+                <div class="side anti">
+                    <h5>Arguments CONTRE :</h5>
+                    <p>La collecte et le suivi de masse des comportements menacent directement la vie privée, le droit à l'anonymat dans l'espace public et les fondements démocratiques[cite: 1].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Friction 2 -->
+        <div class="debate-section">
+            <div class="debate-title">2. La Fiabilité face aux Biais Algorithmiques</div>
+            <div class="vs-box">
+                <div class="side pro">
+                    <h5>Arguments POUR :</h5>
+                    <p>Les outils analysent de grands volumes de données statistiques neutres impossibles à traiter par l'humain. Les biais logiciels peuvent être corrigés à la conception[cite: 1].</p>
+                </div>
+                <div class="side anti">
+                    <h5>Arguments CONTRE :</h5>
+                    <p>Les algorithmes se basent sur des données policières historiques discriminatoires. Ils agissent en boucles de rétroaction, sur-surveillant les populations déjà précarisées[cite: 1].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Friction 3 -->
+        <div class="debate-section">
+            <div class="debate-title">3. Le Secret Industriel vs Transparence</div>
+            <div class="vs-box">
+                <div class="side pro">
+                    <h5>Arguments POUR :</h5>
+                    <p>Les multinationales de la Tech (comme Palantir) invoquent la protection légitime du secret des affaires pour préserver la compétitivité de leurs technologies[cite: 1].</p>
+                </div>
+                <div class="side anti">
+                    <h5>Arguments CONTRE :</h5>
+                    <p>Ces systèmes agissent comme des "boîtes noires". Les citoyens et la justice doivent pouvoir comprendre les mécanismes automatisés qui dictent les suspicions[cite: 1].</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>Dossier Controverse - Groupe 7[cite: 1] - Document de test 2026</p>
+    </footer>
+
+</body>
+</html>
