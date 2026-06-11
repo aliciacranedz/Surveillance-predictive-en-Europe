@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Surveillance Prédictive — Dossier Controverse</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #07080f;
+    --bg2:      #0d0f1a;
+    --bg3:      #111427;
+    --blue:     #00d4ff;
+    --blue-dim: #0099bb;
+    --red:      #ff3860;
+    --green:    #00ff9d;
+    --yellow:   #ffd166;
+    --text:     #c8d0e0;
+    --text-dim: #5a6478;
+    --mono:     'Share Tech Mono', monospace;
+    --sans:     'Inter', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2.5rem;
+    height: 56px;
+    background: rgba(7,8,15,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0,212,255,.12);
+  }
+  .nav-logo {
+    font-family: var(--mono);
+    font-size: .75rem;
+    color: var(--blue);
+    letter-spacing: .18em;
+    text-transform: uppercase;
+  }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: .7rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--blue); }
+
+  /* ── HERO ── */
+  #hero {
+    position: relative;
+    height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    overflow: hidden;
+    padding: 0 2rem;
+  }
+
+  /* camera grid overlay */
+  .grid-overlay {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  /* scan line */
+  .scan-line {
+    position: absolute; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0,212,255,.6), transparent);
+    animation: scan 4s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes scan {
+    0%   { top: 0; opacity: 1; }
+    95%  { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  /* vignette */
+  .hero-vignette {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, transparent 30%, rgba(7,8,15,.85) 100%);
+    pointer-events: none;
+  }
+
+  /* CCTV corner tags */
+  .cctv-tag {
+    position: absolute;
+    font-family: var(--mono);
+    font-size: .65rem;
+    color: var(--blue);
+    opacity: .5;
+    letter-spacing: .1em;
+  }
+  .cctv-tag.tl { top: 80px; left: 24px; }
+  .cctv-tag.tr { top: 80px; right: 24px; text-align: right; }
+  .cctv-tag.bl { bottom: 24px; left: 24px; }
+  .cctv-tag.br { bottom: 24px; right: 24px; text-align: right; }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .25em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 1.5rem;
+    position: relative; z-index: 2;
+  }
+  .hero-eyebrow::before {
+    content: '⬤ ';
+    animation: blink 1.2s step-end infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  #hero h1 {
+    font-family: var(--mono);
+    font-size: clamp(2rem, 5vw, 4.2rem);
+    font-weight: 400;
+    line-height: 1.15;
+    color: #fff;
+    position: relative; z-index: 2;
+    max-width: 900px;
+  }
+  #hero h1 span { color: var(--blue); }
+
+  .hero-sub {
+    margin-top: 1.5rem;
+    max-width: 560px;
+    font-size: .95rem;
+    color: var(--text-dim);
+    position: relative; z-index: 2;
+    line-height: 1.8;
+  }
+
+  .hero-tags {
+    margin-top: 2rem;
+    display: flex; gap: .75rem; flex-wrap: wrap; justify-content: center;
+    position: relative; z-index: 2;
+  }
+  .tag {
+    padding: .3rem .9rem;
+    border-radius: 2px;
+    font-family: var(--mono);
+    font-size: .65rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    border: 1px solid;
+  }
+  .tag-blue { border-color: var(--blue); color: var(--blue); background: rgba(0,212,255,.06); }
+  .tag-red  { border-color: var(--red);  color: var(--red);  background: rgba(255,56,96,.06); }
+  .tag-dim  { border-color: var(--text-dim); color: var(--text-dim); }
+
+  .scroll-hint {
+    position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    font-family: var(--mono); font-size: .65rem; color: var(--text-dim);
+    letter-spacing: .15em; text-transform: uppercase; z-index: 2;
+    animation: bounce 2s ease-in-out infinite;
+  }
+  @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(6px)} }
+
+  /* ── SECTIONS SHARED ── */
+  section { padding: 6rem 2rem; max-width: 1100px; margin: 0 auto; }
+  .section-label {
+    font-family: var(--mono);
+    font-size: .65rem;
+    letter-spacing: .25em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 1rem;
+    display: flex; align-items: center; gap: .75rem;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(0,212,255,.3), transparent);
+    max-width: 200px;
+  }
+  h2 {
+    font-family: var(--mono);
+    font-size: clamp(1.4rem, 3vw, 2.2rem);
+    font-weight: 400;
+    color: #fff;
+    margin-bottom: 1rem;
+    line-height: 1.3;
+  }
+  .section-intro {
+    color: var(--text-dim);
+    max-width: 640px;
+    font-size: .95rem;
+    margin-bottom: 3rem;
+    line-height: 1.9;
+  }
+
+  /* ── CONTEXT ── */
+  #contexte { border-top: 1px solid rgba(0,212,255,.08); }
+  .context-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5px;
+    background: rgba(0,212,255,.08);
+    border: 1px solid rgba(0,212,255,.08);
+  }
+  .context-card {
+    background: var(--bg2);
+    padding: 2rem;
+    transition: background .2s;
+  }
+  .context-card:hover { background: var(--bg3); }
+  .context-icon {
+    font-size: 1.6rem; margin-bottom: 1rem;
+    display: block;
+  }
+  .context-card h3 {
+    font-family: var(--mono);
+    font-size: .85rem;
+    color: var(--blue);
+    margin-bottom: .75rem;
+    letter-spacing: .05em;
+  }
+  .context-card p { font-size: .88rem; color: var(--text-dim); line-height: 1.8; }
+
+  /* ── ACTORS ── */
+  #acteurs { border-top: 1px solid rgba(0,212,255,.08); }
+  .actors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+  .actor-card {
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,.05);
+    padding: 1.5rem;
+    position: relative;
+    transition: border-color .2s, transform .2s;
+    overflow: hidden;
+  }
+  .actor-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .actor-card.pour::before  { background: var(--green); }
+  .actor-card.contre::before { background: var(--red); }
+  .actor-card.neutre::before { background: var(--yellow); }
+  .actor-card:hover { border-color: rgba(0,212,255,.2); transform: translateY(-2px); }
+  .actor-badge {
+    display: inline-block;
+    padding: .2rem .65rem;
+    font-family: var(--mono);
+    font-size: .62rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    margin-bottom: 1rem;
+  }
+  .badge-pour   { background: rgba(0,255,157,.12); color: var(--green); border: 1px solid rgba(0,255,157,.2); }
+  .badge-contre { background: rgba(255,56,96,.12);  color: var(--red);   border: 1px solid rgba(255,56,96,.2); }
+  .badge-neutre { background: rgba(255,209,102,.1); color: var(--yellow);border: 1px solid rgba(255,209,102,.2); }
+  .actor-card h3 {
+    font-family: var(--mono);
+    font-size: .95rem;
+    color: #fff;
+    margin-bottom: .25rem;
+  }
+  .actor-type {
+    font-size: .75rem; color: var(--text-dim);
+    margin-bottom: .75rem;
+    font-style: italic;
+  }
+  .actor-card p { font-size: .83rem; color: var(--text-dim); line-height: 1.75; }
+  .actor-engagement {
+    margin-top: 1rem;
+    display: flex; align-items: center; gap: .5rem;
+    font-family: var(--mono); font-size: .65rem; color: var(--text-dim);
+  }
+  .engagement-dots span {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 3px;
+  }
+  .dot-on  { background: var(--blue); }
+  .dot-off { background: rgba(0,212,255,.15); }
+
+  /* ── ARGUMENTS ── */
+  #arguments { border-top: 1px solid rgba(0,212,255,.08); }
+  .args-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    background: rgba(0,212,255,.06);
+  }
+  @media(max-width:700px) { .args-split { grid-template-columns: 1fr; } }
+  .args-col {
+    background: var(--bg2);
+    padding: 2.5rem 2rem;
+  }
+  .args-col-label {
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .args-col-label.pour-label   { color: var(--green); }
+  .args-col-label.contre-label { color: var(--red); }
+  .arg-item {
+    border-left: 2px solid;
+    padding: .75rem 1rem;
+    margin-bottom: 1rem;
+    background: rgba(0,0,0,.2);
+  }
+  .arg-item.pour-item   { border-color: var(--green); }
+  .arg-item.contre-item { border-color: var(--red); }
+  .arg-item h4 {
+    font-family: var(--mono);
+    font-size: .8rem;
+    margin-bottom: .4rem;
+  }
+  .arg-item.pour-item h4   { color: var(--green); }
+  .arg-item.contre-item h4 { color: var(--red); }
+  .arg-item p { font-size: .83rem; color: var(--text-dim); line-height: 1.75; }
+
+  /* ── TIMELINE ── */
+  #chronologie { border-top: 1px solid rgba(0,212,255,.08); }
+  .timeline {
+    position: relative;
+    padding-left: 2rem;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 1px;
+    background: linear-gradient(180deg, var(--blue), rgba(0,212,255,.05));
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 2.5rem;
+    padding-left: 1.5rem;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -2.5rem;
+    top: .4rem;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--blue);
+    box-shadow: 0 0 8px rgba(0,212,255,.4);
+  }
+  .timeline-date {
+    font-family: var(--mono);
+    font-size: .7rem;
+    color: var(--blue);
+    letter-spacing: .15em;
+    margin-bottom: .25rem;
+  }
+  .timeline-item h3 {
+    font-family: var(--mono);
+    font-size: .95rem;
+    color: #fff;
+    margin-bottom: .35rem;
+  }
+  .timeline-item p { font-size: .86rem; color: var(--text-dim); max-width: 600px; }
+
+  /* ── ENJEUX ── */
+  #enjeux { border-top: 1px solid rgba(0,212,255,.08); }
+  .enjeux-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  .enjeu-card {
+    border: 1px solid rgba(255,255,255,.05);
+    padding: 1.75rem 1.5rem;
+    background: var(--bg2);
+    transition: border-color .2s;
+  }
+  .enjeu-card:hover { border-color: rgba(0,212,255,.2); }
+  .enjeu-num {
+    font-family: var(--mono);
+    font-size: 2rem;
+    color: rgba(0,212,255,.12);
+    line-height: 1;
+    margin-bottom: .75rem;
+    font-weight: 400;
+  }
+  .enjeu-card h3 {
+    font-family: var(--mono);
+    font-size: .85rem;
+    color: var(--blue);
+    margin-bottom: .5rem;
+    letter-spacing: .03em;
+  }
+  .enjeu-card p { font-size: .82rem; color: var(--text-dim); line-height: 1.75; }
+
+  /* ── GLOSSAIRE ── */
+  #glossaire { border-top: 1px solid rgba(0,212,255,.08); }
+  .gloss-list { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(0,212,255,.06); }
+  @media(max-width:600px) { .gloss-list { grid-template-columns: 1fr; } }
+  .gloss-item { background: var(--bg2); padding: 1.5rem 1.75rem; }
+  .gloss-term {
+    font-family: var(--mono);
+    font-size: .85rem;
+    color: var(--blue);
+    margin-bottom: .4rem;
+  }
+  .gloss-item p { font-size: .83rem; color: var(--text-dim); line-height: 1.75; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid rgba(0,212,255,.08);
+    padding: 3rem 2rem;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: .65rem;
+    color: var(--text-dim);
+    letter-spacing: .1em;
+  }
+  footer span { color: var(--blue); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">◈ Dossier Controverse — Groupe 7</div>
+  <ul class="nav-links">
+    <li><a href="#contexte">Contexte</a></li>
+    <li><a href="#acteurs">Acteurs</a></li>
+    <li><a href="#arguments">Arguments</a></li>
+    <li><a href="#chronologie">Chronologie</a></li>
+    <li><a href="#enjeux">Enjeux</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div id="hero">
+  <div class="grid-overlay"></div>
+  <div class="scan-line"></div>
+  <div class="hero-vignette"></div>
+
+  <div class="cctv-tag tl">CAM_01 // ACTIF<br>FLUX: CHIFFRÉ</div>
+  <div class="cctv-tag tr">REC ●<br>2025–2026</div>
+  <div class="cctv-tag bl">RÉSOLUTION: 4K<br>ZONE: EU-WIDE</div>
+  <div class="cctv-tag br">IA: ACTIVÉE<br>PRÉDICTION: ON</div>
+
+  <div class="hero-eyebrow">Dossier controverse — Surveillance & IA</div>
+
+  <h1>La <span>surveillance prédictive</span><br>en Europe</h1>
+
+  <p class="hero-sub">
+    Entre prévention du crime et contrôle social total — comment les algorithmes redessinent les frontières de nos libertés.
+  </p>
+
+  <div class="hero-tags">
+    <span class="tag tag-blue">Intelligence Artificielle</span>
+    <span class="tag tag-red">Libertés fondamentales</span>
+    <span class="tag tag-dim">AI Act 2024</span>
+    <span class="tag tag-dim">Police prédictive</span>
+    <span class="tag tag-dim">Biais algorithmiques</span>
+  </div>
+
+  <div class="scroll-hint">↓ Défiler pour explorer</div>
+</div>
+
+<!-- CONTEXTE -->
+<section id="contexte">
+  <div class="section-label">01 — Contexte</div>
+  <h2>Pourquoi cette controverse ?</h2>
+  <p class="section-intro">
+    Depuis une dizaine d'années, l'Europe intègre massivement l'IA dans ses dispositifs de sécurité. Le débat se situe à la croisée de deux dynamiques : une modernisation technologique rapide et une volonté de protéger les droits fondamentaux.
+  </p>
+  <div class="context-grid">
+    <div class="context-card">
+      <span class="context-icon">📡</span>
+      <h3>Accélération technologique</h3>
+      <p>La pandémie, le terrorisme et la gestion des foules ont favorisé l'adoption de systèmes d'analyse automatisée — caméras intelligentes, analyse comportementale, logiciels de police prédictive.</p>
+    </div>
+    <div class="context-card">
+      <span class="context-icon">⚖️</span>
+      <h3>AI Act européen</h3>
+      <p>Premier cadre juridique mondial sur l'IA, l'AI Act vise à encadrer les usages dans les domaines sensibles. Il interdit la prédiction individuelle mais autorise la prédiction géographique sous contrôle strict.</p>
+    </div>
+    <div class="context-card">
+      <span class="context-icon">🔐</span>
+      <h3>Droits vs Sécurité</h3>
+      <p>Le cœur du débat : comment concilier l'efficacité sécuritaire des algorithmes prédictifs avec la protection de la vie privée, la présomption d'innocence et les libertés individuelles ?</p>
+    </div>
+    <div class="context-card">
+      <span class="context-icon">🏙️</span>
+      <h3>Expérimentations urbaines</h3>
+      <p>Des projets comme M-Pulse à Marseille, les logiciels Smart Police d'Edicia, ou la vidéosurveillance algorithmique testée par la RATP et la SNCF illustrent une généralisation progressive.</p>
+    </div>
+  </div>
+</section>
+
+<div class="tv-bank" id="tvbank1" aria-hidden="true"></div>
+
+<!-- ACTEURS -->
+<section id="acteurs">
+  <div class="section-label">02 — Acteurs</div>
+  <h2>Qui prend position ?</h2>
+  <p class="section-intro">
+    La controverse mobilise des acteurs très divers : entreprises technologiques, institutions étatiques, ONG, régulateurs. Chacun défend une vision différente de l'équilibre entre sécurité et libertés.
+  </p>
+  <div class="actors-grid">
+
+    <div class="actor-card pour">
+      <span class="actor-badge badge-pour">Pour</span>
+      <h3>Palantir Technologies</h3>
+      <div class="actor-type">Multinationale tech</div>
+      <p>Vend le logiciel Gotham aux forces de l'ordre. Défend l'efficacité mathématique et protège ses algorithmes au nom du secret industriel.</p>
+      <div class="actor-engagement">
+        <span class="engagement-dots">
+          <span class="dot-on"></span><span class="dot-on"></span><span class="dot-on"></span>
+        </span>
+        Engagement : très fort (lobbying)
+      </div>
+    </div>
+
+    <div class="actor-card pour">
+      <span class="actor-badge badge-pour">Pour</span>
+      <h3>Edicia (Yann Flanquart)</h3>
+      <div class="actor-type">Éditeur logiciel français</div>
+      <p>Propose Smart Police et PAVED pour optimiser les patrouilles municipales et moderniser la prévention dans les villes.</p>
+      <div class="actor-engagement">
+        <span class="engagement-dots">
+          <span class="dot-on"></span><span class="dot-on"></span><span class="dot-off"></span>
+        </span>
+        Engagement : fort (commercial)
+      </div>
+    </div>
+
+    <div class="actor-card pour">
+      <span class="actor-badge badge-pour">Pour</span>
+      <h3>Europol</h3>
+      <div class="actor-type">Agence de police européenne</div>
+      <p>Face à l'explosion des données numériques, l'analyse humaine devient impossible. Europol défend l'IA comme indispensable pour traquer la criminalité organisée.</p>
+      <div class="actor-engagement">
+        <span class="engagement-dots">
+          <span class="dot-on"></span><span class="dot-on"></span><span class="dot-on"></span>
+        </span>
+        Engagement : très fort (moteur)
+      </div>
+    </div>
+
+    <div class="actor-card pour">
+      <span class="actor-badge badge-pour">Pour</span>
+      <h3>Ministère de l'Intérieur</h3>
+      <div class="actor-type">Institution étatique</div>
+      <p>Face à la baisse des effectifs, défend l'IA comme outil rationnel d'aide à la décision pour orienter les forces de l'ordre.</p>
+      <div class="actor-engagement">
+        <span class="engagement-dots">
+          <span class="dot-on"></span><span class="dot-on"></span><span class="dot-off"></span>
+        </span>
+        Engagement : fort (sponsor)
+      </div>
+    </div>
+
+    <div class="actor-card contre">
+      <span class="actor-badge badge-contre">Contre</span>
+      <h3>La Quadrature du Net</h3>
+      <div class="actor-type">ONG — Félix Tréguer</div>
+      <p>Dénonce la "Technopolice" et la normalisation des outils algorithmiques qui automatisent les biais racistes. Poursuit les mairies en justice.</p>
+      <div class="actor-engagement">
+        <span class="engagement-dots">
+          <span class="dot-on"></span><span class="dot-on"></span><span class="dot-on"></span>
+        </span>
+        Engagement : très fort (activiste)
+      </div>
+    </div>
+
+    <div class="actor-card contre">
+      <span class="actor-badge badge-contre">Contre</span>
+      <h3>AlgorithmWatch</h3>
+      <div class="actor-type">ONG européenne / Experts</div>
+      <p>Déconstruit le mythe de la neutralité technologique : les algorithmes sont des "boîtes noires" auto-réalisatrices créant des boucles de rétroaction discriminatoires.</p>
+      <div class="actor-engagement">
+        <span class="engagement-dots">
+          <span class="dot-on"></span><span class="dot-on"></span><span class="dot-on"></span>
+        </span>
+        Engagement : très fort (académique)
+      </div>
+    </div>
+
+    <div class="actor-card contre">
+      <span class="actor-badge badge-contre">Contre</span>
+      <h3>Ligue des Droits de l'Homme</h3>
+      <div class="actor-type">ONG — Défense des libertés</div>
+      <p>Estime que la prédiction du crime constitue une présomption de culpabilité automatisée, ciblant injustement les quartiers populaires.</p>
+      <div class="actor-engagement">
+        <span class="engagement-dots">
+          <span class="dot-on"></span><span class="dot-on"></span><span class="dot-off"></span>
+        </span>
+        Engagement : fort (plaidoyer)
+      </div>
+    </div>
+
+    <div class="actor-card neutre">
+      <span class="actor-badge badge-neutre">Arbitre</span>
+      <h3>Parlement Européen</h3>
+      <div class="actor-type">Législateur européen</div>
+      <p>Pris en étau : a interdit la prédiction individuelle dans l'AI Act, mais autorise la prédiction géographique sous contrôle strict. Rôle décisif.</p>
+      <div class="actor-engagement">
+        <span class="engagement-dots">
+          <span class="dot-on"></span><span class="dot-on"></span><span class="dot-on"></span>
+        </span>
+        Engagement : décisif (loi)
+      </div>
+    </div>
+
+    <div class="actor-card neutre">
+      <span class="actor-badge badge-neutre">Critique</span>
+      <h3>CNIL</h3>
+      <div class="actor-type">Autorité de régulation (AAI)</div>
+      <p>N'interdit pas par principe, mais exige transparence, études d'impact obligatoires et maintien d'une supervision humaine. Peut sanctionner.</p>
+      <div class="actor-engagement">
+        <span class="engagement-dots">
+          <span class="dot-on"></span><span class="dot-on"></span><span class="dot-off"></span>
+        </span>
+        Engagement : fort (sanctions)
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ARGUMENTS -->
+<section id="arguments">
+  <div class="section-label">03 — Arguments</div>
+  <h2>Le face-à-face</h2>
+  <p class="section-intro">
+    La controverse mobilise des arguments sécuritaires, technologiques, éthiques, juridiques et économiques. Voici les positions en présence.
+  </p>
+  <div class="args-split">
+    <div class="args-col">
+      <div class="args-col-label pour-label">✓ Arguments pour</div>
+
+      <div class="arg-item pour-item">
+        <h4>Prévention du crime</h4>
+        <p>L'IA permet d'anticiper certains crimes et d'intervenir plus rapidement, en identifiant des zones ou des tendances à risque grâce à l'analyse de grandes quantités de données.</p>
+      </div>
+
+      <div class="arg-item pour-item">
+        <h4>Optimisation des ressources</h4>
+        <p>Face à des effectifs limités, les outils algorithmiques aident à mieux cibler les interventions policières. Là où l'humain ne peut traiter des millions de données, la machine peut.</p>
+      </div>
+
+      <div class="arg-item pour-item">
+        <h4>Innovation technologique</h4>
+        <p>L'IA représente une évolution naturelle des outils de sécurité. Elle permet de moderniser les infrastructures et d'améliorer la capacité d'analyse des institutions.</p>
+      </div>
+
+      <div class="arg-item pour-item">
+        <h4>Efficacité documentée</h4>
+        <p>Des expérimentations dans plusieurs villes européennes montrent des résultats sur l'optimisation des patrouilles et la détection précoce de situations à risque.</p>
+      </div>
+    </div>
+
+    <div class="args-col">
+      <div class="args-col-label contre-label">✗ Arguments contre</div>
+
+      <div class="arg-item contre-item">
+        <h4>Menace sur les libertés</h4>
+        <p>La collecte massive de données et l'analyse automatisée des comportements portent atteinte à la vie privée et aux libertés fondamentales. La surveillance peut devenir excessive et normalisée.</p>
+      </div>
+
+      <div class="arg-item contre-item">
+        <h4>Biais algorithmiques</h4>
+        <p>Si des zones sont déjà surreprésentées dans les données policières, l'algorithme les identifie comme "plus criminogènes", renforçant ainsi la surveillance et créant une boucle discriminatoire auto-réalisatrice.</p>
+      </div>
+
+      <div class="arg-item contre-item">
+        <h4>Opacité des systèmes</h4>
+        <p>Les algorithmes fonctionnent comme des "boîtes noires" dont le fonctionnement est opaque. Les entreprises invoquent le secret industriel pour refuser toute transparence sur leurs décisions.</p>
+      </div>
+
+      <div class="arg-item contre-item">
+        <h4>Efficacité contestée</h4>
+        <p>Les prédictions reposent souvent sur des corrélations statistiques, sans compréhension des causes réelles de la criminalité. Les résultats ne sont pas toujours convaincants et peuvent mener à de fausses accusations.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="tv-bank" id="tvbank2" aria-hidden="true"></div>
+
+<!-- CHRONOLOGIE -->
+<section id="chronologie">
+  <div class="section-label">04 — Chronologie</div>
+  <h2>Les étapes clés</h2>
+  <p class="section-intro">
+    De la première proposition législative à l'application complète de l'AI Act, le cadre réglementaire européen s'est construit progressivement.
+  </p>
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-date">2021</div>
+      <h3>Première proposition législative européenne</h3>
+      <p>La Commission européenne publie sa première proposition de loi sur l'IA, incluant des dispositions spécifiques en rapport avec la surveillance de masse.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-date">Décembre 2023</div>
+      <h3>Accord politique sur l'AI Act</h3>
+      <p>Le Parlement européen et le Conseil trouvent un accord politique sur le règlement encadrant l'IA, incluant des règles sur la surveillance prédictive.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-date">Mai 2024</div>
+      <h3>Adoption définitive de l'AI Act</h3>
+      <p>L'AI Act est officiellement adopté — premier cadre juridique mondial sur l'IA. La prédiction individuelle (scoring) est interdite ; la prédiction géographique est encadrée strictement.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-date">Novembre 2024</div>
+      <h3>Identification des autorités nationales</h3>
+      <p>Les États membres désignent les autorités nationales chargées de surveiller l'usage de l'IA et de faire appliquer les lois sur la surveillance de masse.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-date">Février 2025</div>
+      <h3>Interdiction des systèmes à haut risque</h3>
+      <p>Entrée en vigueur de l'interdiction des systèmes d'IA à risque élevé pouvant être utilisés à des fins de surveillance de masse.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-date">Août 2026</div>
+      <h3>Application complète de l'AI Act</h3>
+      <p>Entrée en application intégrale du règlement et de ses lois sur la surveillance de masse. Toutes les obligations s'appliquent à l'ensemble des acteurs.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ENJEUX -->
+<section id="enjeux">
+  <div class="section-label">05 — Enjeux</div>
+  <h2>Les points de friction majeurs</h2>
+  <p class="section-intro">
+    Six désaccords fondamentaux structurent ce débat, qui mêle questions techniques, éthiques, juridiques et politiques.
+  </p>
+  <div class="enjeux-grid">
+    <div class="enjeu-card">
+      <div class="enjeu-num">01</div>
+      <h3>Sécurité vs Libertés</h3>
+      <p>L'équilibre central : jusqu'où l'État peut-il surveiller pour protéger, sans porter atteinte aux droits fondamentaux des citoyens ?</p>
+    </div>
+    <div class="enjeu-card">
+      <div class="enjeu-num">02</div>
+      <h3>Fiabilité scientifique</h3>
+      <p>Ces systèmes permettent-ils vraiment de prévenir les crimes, ou donnent-ils seulement l'impression d'une meilleure efficacité grâce à des corrélations sans causalité ?</p>
+    </div>
+    <div class="enjeu-card">
+      <div class="enjeu-num">03</div>
+      <h3>Discriminations systémiques</h3>
+      <p>Les biais algorithmiques peuvent-ils être éliminés, ou sont-ils inhérents à des technologies entraînées sur des données historiquement discriminatoires ?</p>
+    </div>
+    <div class="enjeu-card">
+      <div class="enjeu-num">04</div>
+      <h3>Transparence & Boîtes noires</h3>
+      <p>Comment garantir le droit des citoyens à comprendre les décisions qui les concernent, face aux entreprises qui invoquent le secret industriel ?</p>
+    </div>
+    <div class="enjeu-card">
+      <div class="enjeu-num">05</div>
+      <h3>Encadrement juridique</h3>
+      <p>Quel niveau de régulation pour protéger les droits sans étouffer l'innovation ? L'AI Act tranche partiellement, mais des zones grises subsistent.</p>
+    </div>
+    <div class="enjeu-card">
+      <div class="enjeu-num">06</div>
+      <h3>Intérêts économiques</h3>
+      <p>Les marchés de l'IA sécuritaire pèsent des milliards. Ces intérêts économiques influencent-ils les décisions politiques au détriment de l'intérêt général ?</p>
+    </div>
+  </div>
+</section>
+
+<div class="tv-bank" id="tvbank3" aria-hidden="true"></div>
+
+<!-- GLOSSAIRE -->
+<section id="glossaire">
+  <div class="section-label">06 — Glossaire</div>
+  <h2>Définitions clés</h2>
+  <p class="section-intro">Les termes essentiels pour naviguer dans cette controverse.</p>
+  <div class="gloss-list">
+    <div class="gloss-item">
+      <div class="gloss-term">Surveillance prédictive</div>
+      <p>Surveillance visant à anticiper des infractions avant qu'elles se produisent, en s'appuyant sur des données (vidéo, capteurs, réseaux sociaux) et des modèles statistiques ou d'IA.</p>
+    </div>
+    <div class="gloss-item">
+      <div class="gloss-term">Police prédictive</div>
+      <p>Usage d'algorithmes pour prédire des zones, moments ou personnes à risque de criminalité, afin d'orienter les patrouilles, contrôles ou enquêtes.</p>
+    </div>
+    <div class="gloss-item">
+      <div class="gloss-term">Vidéosurveillance algorithmique</div>
+      <p>Systèmes de caméras couplés à des algorithmes capables de détecter automatiquement des comportements, reconnaître des visages et déclencher des alertes en temps réel.</p>
+    </div>
+    <div class="gloss-item">
+      <div class="gloss-term">Biais algorithmiques</div>
+      <p>Distorsions systématiques dans les résultats d'un algorithme défavorisant certains groupes — car les données d'entraînement reflètent des discriminations passées.</p>
+    </div>
+    <div class="gloss-item">
+      <div class="gloss-term">Reconnaissance faciale</div>
+      <p>Technologie qui identifie ou vérifie l'identité d'une personne à partir de son visage — en photo, vidéo ou via caméra en temps réel dans l'espace public.</p>
+    </div>
+    <div class="gloss-item">
+      <div class="gloss-term">Feedback loop</div>
+      <p>Boucle de rétroaction auto-réalisatrice : un quartier surreprésenté dans les données reçoit plus de surveillance, génère plus de données, et est donc perçu comme encore plus "à risque".</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Dossier réalisé par <span>Nathan Marx, Rémi Nasser, Manoah Ribeiro Nnodim & Arthur Oury</span></p>
+  <p style="margin-top:.5rem; opacity:.5;">ESIEE Paris — Groupe 7 — Controverse : Surveillance Prédictive en Europe</p>
+</footer>
+
+<!-- CAMERAS -->
+<style>
+  .cam-wrap {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 99;
+    display: flex;
+    flex-direction: column;
+    gap: 120px;
+    pointer-events: none;
+  }
+  .cam-wrap.left  { left: 0; }
+  .cam-wrap.right { right: 0; }
+
+  .cam-unit {
+    position: relative;
+    width: 56px;
+    height: 56px;
+  }
+
+  /* wall mount bracket */
+  .cam-bracket {
+    position: absolute;
+    background: #1a1d2e;
+    border: 1px solid rgba(0,212,255,.25);
+  }
+  .cam-wrap.left  .cam-bracket { left: 0; top: 50%; transform: translateY(-50%); width: 12px; height: 28px; border-radius: 0 3px 3px 0; }
+  .cam-wrap.right .cam-bracket { right: 0; top: 50%; transform: translateY(-50%); width: 12px; height: 28px; border-radius: 3px 0 0 3px; }
+
+  /* pivot arm */
+  .cam-arm {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 18px; height: 4px;
+    background: #1a1d2e;
+    border: 1px solid rgba(0,212,255,.2);
+    border-radius: 2px;
+    transform-origin: left center;
+    transform: translateY(-50%);
+  }
+
+  /* camera body */
+  .cam-body {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translateY(-50%);
+    width: 30px; height: 18px;
+    background: #111627;
+    border: 1px solid rgba(0,212,255,.35);
+    border-radius: 3px;
+    display: flex; align-items: center; justify-content: flex-end;
+    padding-right: 4px;
+  }
+  .cam-lens {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #003344, #000508);
+    border: 1px solid rgba(0,212,255,.5);
+    position: relative;
+  }
+  .cam-lens::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: rgba(0,212,255,.6);
+    animation: lens-blink 2.5s ease-in-out infinite;
+  }
+  @keyframes lens-blink {
+    0%,90%,100% { opacity: 1; }
+    95% { opacity: 0.1; }
+  }
+
+  /* red indicator light */
+  .cam-led {
+    position: absolute;
+    top: 3px; left: 5px;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: #ff3860;
+    box-shadow: 0 0 4px #ff3860;
+    animation: led-pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes led-pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: .2; }
+  }
+
+  /* scan beam */
+  .cam-beam {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 0; height: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s;
+  }
+  .cam-wrap.left  .cam-beam { border-top: 14px solid transparent; border-bottom: 14px solid transparent; border-right: 80px solid rgba(0,212,255,.04); transform: translateY(-14px); }
+  .cam-wrap.right .cam-beam { border-top: 14px solid transparent; border-bottom: 14px solid transparent; border-left: 80px solid rgba(0,212,255,.04);  transform: translateX(-80px) translateY(-14px); }
+
+  .cam-unit:hover .cam-beam,
+  .cam-unit.active .cam-beam { opacity: 1; }
+
+  /* detection label */
+  .cam-label {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px;
+    color: rgba(0,212,255,.4);
+    white-space: nowrap;
+    letter-spacing: .05em;
+  }
+</style>
+
+<!-- Left cameras -->
+<div class="cam-wrap left" id="cams-left">
+  <div class="cam-unit" id="cam-L0">
+    <div class="cam-bracket"></div>
+    <div class="cam-arm" id="arm-L0"></div>
+    <div class="cam-body" id="body-L0">
+      <div class="cam-led"></div>
+      <div class="cam-lens"></div>
+    </div>
+    <div class="cam-beam"></div>
+    <div class="cam-label">CAM_L1</div>
+  </div>
+  <div class="cam-unit" id="cam-L1">
+    <div class="cam-bracket"></div>
+    <div class="cam-arm" id="arm-L1"></div>
+    <div class="cam-body" id="body-L1">
+      <div class="cam-led"></div>
+      <div class="cam-lens"></div>
+    </div>
+    <div class="cam-beam"></div>
+    <div class="cam-label">CAM_L2</div>
+  </div>
+  <div class="cam-unit" id="cam-L2">
+    <div class="cam-bracket"></div>
+    <div class="cam-arm" id="arm-L2"></div>
+    <div class="cam-body" id="body-L2">
+      <div class="cam-led"></div>
+      <div class="cam-lens"></div>
+    </div>
+    <div class="cam-beam"></div>
+    <div class="cam-label">CAM_L3</div>
+  </div>
+</div>
+
+<!-- Right cameras -->
+<div class="cam-wrap right" id="cams-right">
+  <div class="cam-unit" id="cam-R0">
+    <div class="cam-bracket"></div>
+    <div class="cam-arm" id="arm-R0"></div>
+    <div class="cam-body" id="body-R0">
+      <div class="cam-led"></div>
+      <div class="cam-lens"></div>
+    </div>
+    <div class="cam-beam"></div>
+    <div class="cam-label">CAM_R1</div>
+  </div>
+  <div class="cam-unit" id="cam-R1">
+    <div class="cam-bracket"></div>
+    <div class="cam-arm" id="arm-R1"></div>
+    <div class="cam-body" id="body-R1">
+      <div class="cam-led"></div>
+      <div class="cam-lens"></div>
+    </div>
+    <div class="cam-beam"></div>
+    <div class="cam-label">CAM_R2</div>
+  </div>
+  <div class="cam-unit" id="cam-R2">
+    <div class="cam-bracket"></div>
+    <div class="cam-arm" id="arm-R2"></div>
+    <div class="cam-body" id="body-R2">
+      <div class="cam-led"></div>
+      <div class="cam-lens"></div>
+    </div>
+    <div class="cam-beam"></div>
+    <div class="cam-label">CAM_R3</div>
+  </div>
+</div>
+
+<!-- HACK OVERLAY -->
+<style>
+#hack-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  pointer-events: none; overflow: hidden;
+}
+#hack-overlay::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,212,255,.015) 3px, rgba(0,212,255,.015) 4px);
+  opacity: 0; transition: opacity .4s;
+}
+#hack-overlay.active::before { opacity: 1; }
+#hack-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hud-corner {
+  position: absolute; font-family: 'Share Tech Mono', monospace;
+  font-size: .58rem; color: rgba(0,212,255,0); letter-spacing: .07em;
+  line-height: 1.6; transition: color .5s; white-space: nowrap;
+}
+.hud-corner.tl { top: 68px; left: 10px; }
+.hud-corner.br { bottom: 10px; right: 10px; text-align: right; }
+#hack-overlay.active .hud-corner { color: rgba(0,212,255,.4); }
+#hack-warning {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1rem; color: #ff3860;
+  letter-spacing: .3em; text-transform: uppercase;
+  opacity: 0; text-align: center; pointer-events: none;
+}
+
+/* TV banks */
+.tv-bank {
+  width: 100%; padding: 2.5rem 2rem;
+  display: flex; justify-content: center; align-items: flex-end;
+  gap: 2rem; flex-wrap: wrap;
+  opacity: 0; transform: translateY(30px);
+  transition: opacity .9s ease, transform .9s ease;
+  position: relative; overflow: hidden; min-height: 200px;
+}
+.tv-bank::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(0,212,255,.025) 0%, transparent 100%);
+  pointer-events: none;
+}
+.tv-bank.visible { opacity: 1; transform: translateY(0); }
+.tv-set { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.tv-frame {
+  border: 3px solid #1a2035; border-radius: 6px; padding: 4px;
+  background: #08090f;
+  box-shadow: 0 0 16px rgba(0,212,255,.07), inset 0 0 8px rgba(0,0,0,.9);
+  position: relative;
+}
+.tv-frame::after {
+  content: ''; position: absolute; inset: 4px; border-radius: 2px;
+  background: linear-gradient(135deg, rgba(255,255,255,.025) 0%, transparent 55%);
+  pointer-events: none;
+}
+.tv-screen { display: block; border-radius: 2px; }
+.tv-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .55rem; color: rgba(0,212,255,.35);
+  letter-spacing: .08em; text-align: center;
+}
+.tv-stand { width: 28px; height: 5px; background: #1a2035; border-radius: 0 0 3px 3px; }
+.tv-base  { width: 46px; height: 4px; background: #131721; border-radius: 2px; }
+</style>
+
+<div id="hack-overlay">
+  <canvas id="hack-canvas"></canvas>
+  <div class="hud-corner tl" id="hud-tl"></div>
+  <div class="hud-corner br" id="hud-br"></div>
+  <div id="hack-warning"></div>
+</div>
+
+<script>
+/* ═══════════════════════════════════
+   HACK OVERLAY — scroll-driven
+═══════════════════════════════════ */
+const hackCanvas  = document.getElementById('hack-canvas');
+const hackCtx     = hackCanvas.getContext('2d');
+const overlay     = document.getElementById('hack-overlay');
+const hudTL       = document.getElementById('hud-tl');
+const hudBR       = document.getElementById('hud-br');
+const hackWarning = document.getElementById('hack-warning');
+let hackIntensity = 0, lastHackTime = 0, hackFrame = 0, warnAlpha = 0;
+
+function resizeHack() { hackCanvas.width = window.innerWidth; hackCanvas.height = window.innerHeight; }
+resizeHack(); window.addEventListener('resize', resizeHack);
+
+const hexChars = '0123456789ABCDEF';
+const codeLines = [
+  'SYS_BYPASS: ACTIVE','FIREWALL: BREACHED','ROOT_ACCESS: GRANTED',
+  'ENCRYPT_KEY: 0x4F3A2B1C','PACKET_INTERCEPT: ON','NODE_ID: EU-CCTV-7749',
+  'STREAM_DECODE: RUNNING','FACE_MATCH: 94.3%','BEHAVIORAL_SCORE: HIGH',
+  'DATA_EXFIL: 2.3GB','LOCATION_LOG: PARIS-75','PREDICT_RISK: 0.87',
+];
+const bands = Array.from({length:10}, () => ({y:Math.random(),h:.02+Math.random()*.05,dx:0,life:0,maxLife:0}));
+const warnings = ['SURVEILLANCE ACTIVE','DONNÉES COLLECTÉES','PROFIL ANALYSÉ','SUIVI EN COURS'];
+
+function drawHack(ts) {
+  requestAnimationFrame(drawHack);
+  const dt = ts - lastHackTime; lastHackTime = ts; hackFrame++;
+  const scrollable = document.body.scrollHeight - window.innerHeight;
+  hackIntensity = scrollable > 0 ? Math.min(1, window.scrollY / scrollable) : 0;
+
+  if (hackIntensity < 0.02) { hackCtx.clearRect(0,0,hackCanvas.width,hackCanvas.height); overlay.classList.remove('active'); return; }
+  overlay.classList.add('active');
+  hackCtx.clearRect(0,0,hackCanvas.width,hackCanvas.height);
+  const W = hackCanvas.width, H = hackCanvas.height;
+
+  /* glitch bands */
+  bands.forEach(b => {
+    if (b.life <= 0) {
+      if (Math.random() < hackIntensity * 0.06) {
+        b.y = Math.random(); b.h = 0.006 + Math.random()*0.04*hackIntensity;
+        b.dx = (Math.random()-.5)*50*hackIntensity;
+        b.maxLife = 80+Math.random()*120; b.life = b.maxLife;
+      }
+    } else {
+      b.life -= dt;
+      const t = b.life/b.maxLife, y = b.y*H, h = b.h*H;
+      const a = Math.min(t*3,1)*hackIntensity*0.2;
+      hackCtx.save();
+      hackCtx.globalAlpha = a;
+      hackCtx.fillStyle = 'rgba(0,212,255,1)';
+      hackCtx.fillRect(b.dx,y,W,h*0.4);
+      hackCtx.globalAlpha = a*0.45;
+      hackCtx.fillStyle = 'rgba(255,56,96,1)';
+      hackCtx.fillRect(b.dx+7*hackIntensity,y+h*0.3,W,h*0.4);
+      hackCtx.restore();
+    }
+  });
+
+  /* hex rain */
+  if (hackFrame%3===0 && hackIntensity>0.12) {
+    const cols = Math.floor(hackIntensity*7);
+    for (let i=0;i<cols;i++) {
+      const hex = Array.from({length:6},()=>hexChars[Math.floor(Math.random()*16)]).join('');
+      hackCtx.save();
+      hackCtx.globalAlpha = (Math.random()*0.2+0.04)*hackIntensity;
+      hackCtx.fillStyle = '#00d4ff';
+      hackCtx.font = `${10+Math.random()*4}px 'Share Tech Mono',monospace`;
+      hackCtx.fillText(hex, Math.random()*W, Math.random()*H);
+      hackCtx.restore();
+    }
+  }
+
+  /* HUD text refresh */
+  if (hackFrame%45===0) {
+    const l1 = codeLines[Math.floor(Math.random()*codeLines.length)];
+    const l2 = codeLines[Math.floor(Math.random()*codeLines.length)];
+    hudTL.innerHTML = `INTRUSION_LEVEL: ${Math.floor(hackIntensity*100)}%<br>${l1}<br>TIME: ${new Date().toISOString().slice(11,19)}`;
+    hudBR.innerHTML = `${l2}<br>NODES: ${Math.floor(hackIntensity*247+3)}<br>EU-CCTV GRID: ACTIVE`;
+  }
+
+  /* red warning at high depth */
+  if (hackIntensity > 0.68) {
+    const wt = (hackIntensity-0.68)/0.32;
+    warnAlpha += (Math.abs(Math.sin(ts*0.0018)) - warnAlpha)*0.04;
+    hackWarning.style.opacity = warnAlpha*wt;
+    hackWarning.textContent = warnings[Math.floor(ts/2200)%4];
+  } else { hackWarning.style.opacity = 0; }
+
+  /* edge vignette */
+  const vg = hackCtx.createRadialGradient(W/2,H/2,H*.28,W/2,H/2,H*.9);
+  vg.addColorStop(0,'transparent');
+  vg.addColorStop(1,`rgba(0,212,255,${0.05*hackIntensity})`);
+  hackCtx.save(); hackCtx.globalCompositeOperation='screen';
+  hackCtx.fillStyle=vg; hackCtx.fillRect(0,0,W,H); hackCtx.restore();
+}
+requestAnimationFrame(drawHack);
+
+/* ═══════════════════════════════════
+   TV SCREENS
+═══════════════════════════════════ */
+const TV_CONFIGS = [
+  { bank:'tvbank1', tvs:[
+    {w:140,h:105,label:'CAM_07 // RUE DE RIVOLI',  scene:'street'},
+    {w:160,h:120,label:'CAM_12 // GARE DU NORD',    scene:'crowd'},
+    {w:140,h:105,label:'CAM_03 // METRO L13',        scene:'tunnel'},
+  ]},
+  { bank:'tvbank2', tvs:[
+    {w:155,h:116,label:'CAM_21 // PL. DE LA REP.',  scene:'plaza'},
+    {w:120,h:90, label:'CAM_08 // PARKING B2',       scene:'parking'},
+    {w:155,h:116,label:'CAM_15 // BD VOLTAIRE',      scene:'street'},
+    {w:120,h:90, label:"CAM_33 // HALL D'ENTRÉE",    scene:'hall'},
+  ]},
+  { bank:'tvbank3', tvs:[
+    {w:140,h:105,label:'CAM_44 // CARREFOUR CTR.',   scene:'crowd'},
+    {w:160,h:120,label:'CAM_02 // NŒUD FERROV.',     scene:'tunnel'},
+    {w:140,h:105,label:'CAM_19 // RUE OBERKAMPF',    scene:'street'},
+  ]},
+];
+
+function drawStick(ctx,x,y,scale){
+  const s=scale*13; ctx.strokeStyle=`rgba(170,195,235,${0.22*scale+0.14})`; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(x,y-s*1.1,s*.36,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x,y-s*.74); ctx.lineTo(x,y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x-s*.4,y+s*.7); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+s*.4,y+s*.7); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x,y-s*.5); ctx.lineTo(x-s*.5,y-s*.1); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x,y-s*.5); ctx.lineTo(x+s*.5,y-s*.1); ctx.stroke();
+}
+function drawPeds(ctx,W,H,t,n){
+  for(let i=0;i<n;i++){
+    const ph=((t*.0004+i*.37)%1); const x=ph*W*1.3-W*.15;
+    const d=.5+(i%3)*.15; const y=H*(.55+(i%3)*.06);
+    drawStick(ctx,x,y,d*.7);
+  }
+}
+function cctvFX(ctx,W,H,t,noise){
+  ctx.fillStyle='rgba(0,220,100,.5)'; ctx.font=`${Math.round(W*.055)}px 'Share Tech Mono',monospace`;
+  const d=new Date(); ctx.fillText(`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`,4,11);
+  for(let y=0;y<H;y+=2){ ctx.fillStyle='rgba(0,0,0,.22)'; ctx.fillRect(0,y,W,1); }
+  if(noise>.05){
+    const id=ctx.getImageData(0,0,W,H),d=id.data;
+    for(let i=0;i<d.length;i+=20){ const n=(Math.random()-.5)*noise*55; d[i]=Math.max(0,Math.min(255,d[i]+n)); d[i+1]=Math.max(0,Math.min(255,d[i+1]+n)); d[i+2]=Math.max(0,Math.min(255,d[i+2]+n)); }
+    ctx.putImageData(id,0,0);
+  }
+  const vg=ctx.createRadialGradient(W/2,H/2,H*.18,W/2,H/2,H*.78);
+  vg.addColorStop(0,'transparent'); vg.addColorStop(1,'rgba(0,0,0,.6)');
+  ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+  if(Math.random()<.018){ ctx.fillStyle=`rgba(0,212,255,${Math.random()*.12})`; ctx.fillRect(0,Math.random()*H,W,2+Math.random()*5); }
+  if(Math.floor(t/680)%2===0){ ctx.fillStyle='rgba(255,56,96,.8)'; ctx.beginPath(); ctx.arc(W-9,8,3.5,0,Math.PI*2); ctx.fill(); }
+}
+
+function drawScene(ctx,W,H,scene,t,noise){
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#060810'; ctx.fillRect(0,0,W,H);
+  if(scene==='street'){
+    ctx.fillStyle='#080c18'; ctx.fillRect(0,0,W,H*.45);
+    ctx.fillStyle='#0b0e1a'; ctx.fillRect(0,H*.45,W,H*.55);
+    ctx.strokeStyle='rgba(160,180,230,.06)';
+    for(let i=0;i<5;i++){ ctx.beginPath(); ctx.moveTo(W/2,H*.45); ctx.lineTo(i*(W/4)-W/4,H); ctx.stroke(); }
+    ctx.fillStyle='#0d1020';
+    [[0,H*.1,W*.2,H*.4],[W*.15,H*.15,W*.18,H*.35],[W*.65,H*.08,W*.2,H*.42],[W*.8,H*.18,W*.22,H*.3]].forEach(([x,y,w,h])=>ctx.fillRect(x,y,w,h));
+    ctx.fillStyle='rgba(255,215,90,.22)';
+    for(let i=0;i<10;i++){ if(Math.sin(t*.001+i*2.3)>.3){ ctx.fillRect(8+Math.random()*W*.12,H*.12+i*9,4,5); ctx.fillRect(W*.67+Math.random()*W*.1,H*.1+i*9,4,5); } }
+    drawPeds(ctx,W,H,t,4);
+    const cx=((t*.02)%1)*W;
+    ctx.fillStyle='rgba(255,238,170,.55)'; ctx.fillRect(cx,H*.58,5,4); ctx.fillRect(cx+14,H*.58,5,4);
+  }
+  if(scene==='crowd'){
+    ctx.fillStyle='#090b16'; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='rgba(90,110,170,.07)';
+    for(let x=0;x<W;x+=18){ ctx.beginPath(); ctx.moveTo(x,H*.5); ctx.lineTo(W/2,H*.3); ctx.stroke(); }
+    drawPeds(ctx,W,H,t,11);
+    for(let i=0;i<3;i++){
+      const lx=W*(i+1)/4; const g=ctx.createRadialGradient(lx,0,0,lx,H*.5,H*.38);
+      g.addColorStop(0,'rgba(190,210,255,.05)'); g.addColorStop(1,'transparent');
+      ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    }
+  }
+  if(scene==='tunnel'){
+    ctx.fillStyle='#06080f'; ctx.fillRect(0,0,W,H);
+    for(let i=10;i>0;i--){ const f=i/10;
+      ctx.beginPath(); ctx.ellipse(W/2,H/2,W*.5*f,H*.5*f,0,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(0,175,255,${.04+.04*f})`; ctx.lineWidth=1; ctx.stroke(); }
+    ctx.strokeStyle='rgba(140,160,210,.14)'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(W*.35,H); ctx.lineTo(W*.48,H*.48); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(W*.65,H); ctx.lineTo(W*.52,H*.48); ctx.stroke();
+    drawStick(ctx,W/2+Math.sin(t*.0009)*18,H*.62,.58);
+  }
+  if(scene==='plaza'){
+    ctx.fillStyle='#080b14'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#0a0e1a'; ctx.fillRect(0,0,W,H*.5);
+    ctx.beginPath(); ctx.arc(W/2,H*.55,18,0,Math.PI*2);
+    ctx.strokeStyle='rgba(0,175,255,.18)'; ctx.lineWidth=2; ctx.stroke();
+    for(let r=20;r<38;r+=5){ ctx.beginPath(); ctx.arc(W/2,H*.55,r+Math.sin(t*.003)*2.5,0,Math.PI*2); ctx.strokeStyle=`rgba(0,175,255,${.07-(r-20)*.012})`; ctx.lineWidth=1; ctx.stroke(); }
+    drawPeds(ctx,W,H,t,6);
+  }
+  if(scene==='parking'){
+    ctx.fillStyle='#07090f'; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='rgba(190,200,215,.07)';
+    for(let x=10;x<W;x+=22){ ctx.beginPath(); ctx.moveTo(x,H*.4); ctx.lineTo(x,H); ctx.stroke(); }
+    [[W*.05,H*.55],[W*.35,H*.55],[W*.6,H*.55]].forEach(([x,y])=>{
+      ctx.fillStyle='#0e1120'; ctx.fillRect(x,y,38,18);
+      ctx.fillStyle='rgba(255,235,90,.14)'; ctx.fillRect(x+2,y+4,5,5);
+      ctx.fillStyle='rgba(255,55,55,.18)'; ctx.fillRect(x+30,y+4,5,5);
+    });
+    drawStick(ctx,W*.8+Math.sin(t*.001)*5,H*.68,.5);
+  }
+  if(scene==='hall'){
+    ctx.fillStyle='#080a15'; ctx.fillRect(0,0,W,H);
+    const fg=ctx.createLinearGradient(0,H*.5,0,H);
+    fg.addColorStop(0,'rgba(0,175,255,.04)'); fg.addColorStop(1,'transparent');
+    ctx.fillStyle=fg; ctx.fillRect(0,H*.5,W,H*.5);
+    ctx.fillStyle='#0d1020'; ctx.fillRect(W*.2,H*.55,W*.6,H*.14);
+    drawStick(ctx,W/2,H*.5,.68); drawStick(ctx,W*.35,H*.58,.52);
+    ctx.fillStyle='rgba(195,215,255,.07)';
+    for(let x=W*.15;x<W*.9;x+=W*.24){ ctx.fillRect(x,0,W*.11,3); }
+  }
+  cctvFX(ctx,W,H,t,noise);
+}
+
+const tvCanvases=[];
+TV_CONFIGS.forEach(cfg=>{
+  const bank=document.getElementById(cfg.bank);
+  cfg.tvs.forEach(tv=>{
+    const set=document.createElement('div'); set.className='tv-set';
+    const frame=document.createElement('div'); frame.className='tv-frame';
+    const cvs=document.createElement('canvas'); cvs.className='tv-screen';
+    cvs.width=tv.w; cvs.height=tv.h; cvs.style.width=tv.w+'px'; cvs.style.height=tv.h+'px';
+    const lbl=document.createElement('div'); lbl.className='tv-label'; lbl.textContent=tv.label;
+    const stand=document.createElement('div'); stand.className='tv-stand';
+    const base=document.createElement('div'); base.className='tv-base';
+    frame.appendChild(cvs); set.appendChild(frame); set.appendChild(lbl); set.appendChild(stand); set.appendChild(base);
+    bank.appendChild(set);
+    tvCanvases.push({cvs,ctx:cvs.getContext('2d'),scene:tv.scene});
+  });
+});
+
+let tvTick=0;
+function animateTVs(ts){
+  requestAnimationFrame(animateTVs); tvTick++;
+  if(tvTick%2!==0) return;
+  const noise=Math.min(1,hackIntensity*1.6);
+  tvCanvases.forEach(tv=>drawScene(tv.ctx,tv.cvs.width,tv.cvs.height,tv.scene,ts,noise));
+}
+requestAnimationFrame(animateTVs);
+
+const bankObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');bankObs.unobserve(e.target);}});
+},{threshold:.12});
+document.querySelectorAll('.tv-bank').forEach(b=>bankObs.observe(b));
+
+/* ── Content reveal ── */
+const items=document.querySelectorAll('.actor-card,.arg-item,.timeline-item,.enjeu-card,.context-card,.gloss-item');
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)';}});
+},{threshold:.08});
+items.forEach(el=>{
+  el.style.opacity='0'; el.style.transform='translateY(16px)';
+  el.style.transition='opacity .5s ease, transform .5s ease';
+  observer.observe(el);
+});
+
+/* ── Camera tracking ── */
+const cameras=[
+  {arm:document.getElementById('arm-L0'),body:document.getElementById('body-L0'),unit:document.getElementById('cam-L0'),side:'left'},
+  {arm:document.getElementById('arm-L1'),body:document.getElementById('body-L1'),unit:document.getElementById('cam-L1'),side:'left'},
+  {arm:document.getElementById('arm-L2'),body:document.getElementById('body-L2'),unit:document.getElementById('cam-L2'),side:'left'},
+  {arm:document.getElementById('arm-R0'),body:document.getElementById('body-R0'),unit:document.getElementById('cam-R0'),side:'right'},
+  {arm:document.getElementById('arm-R1'),body:document.getElementById('body-R1'),unit:document.getElementById('cam-R1'),side:'right'},
+  {arm:document.getElementById('arm-R2'),body:document.getElementById('body-R2'),unit:document.getElementById('cam-R2'),side:'right'},
+];
+let currentAngles=cameras.map(()=>0), mouseX=window.innerWidth/2, mouseY=window.innerHeight/2;
+document.addEventListener('mousemove',e=>{mouseX=e.clientX;mouseY=e.clientY;});
+function updateCameras(){
+  cameras.forEach((cam,i)=>{
+    const rect=cam.unit.getBoundingClientRect();
+    const px=rect.left+rect.width/2, py=rect.top+rect.height/2;
+    let angle=Math.atan2(mouseY-py,mouseX-px)*(180/Math.PI);
+    if(cam.side==='left'){ angle=Math.max(-55,Math.min(55,angle)); }
+    else{ let a=angle; a=a>0?180-a:-180-a; a=Math.max(-55,Math.min(55,a)); angle=a>0?180-a:-180-a; }
+    currentAngles[i]+=(angle-currentAngles[i])*.08;
+    const a=currentAngles[i];
+    cam.arm.style.transform=`translateY(-50%) rotate(${a}deg)`;
+    const bx=Math.cos(a*Math.PI/180)*18, by=Math.sin(a*Math.PI/180)*18;
+    cam.body.style.left=`calc(50% + ${bx}px)`; cam.body.style.top=`calc(50% + ${by}px)`;
+    cam.body.style.transform=`translateY(-50%) rotate(${a}deg)`;
+    cam.unit.classList.toggle('active',Math.hypot(mouseX-px,mouseY-py)<200);
+  });
+  requestAnimationFrame(updateCameras);
+}
+updateCameras();
+</script>
+
+</body>
+</html>
